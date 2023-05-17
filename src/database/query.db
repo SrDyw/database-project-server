@@ -1,0 +1,10 @@
+
+-- Create table
+create table public.programmer(
+	id integer not null,
+	name character varying not null,
+	feature integer not null,
+	primary key(id)
+);
+
+alter table public.programmer owner to postgres
