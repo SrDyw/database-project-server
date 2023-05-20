@@ -8,3 +8,43 @@ create table public.programmer(
 );
 
 alter table public.programmer owner to postgres
+
+INSERT INTO public.designer_skills(
+	id_designer, skill)
+	VALUES ((SELECT id FROM designer WHERE id = 1), 'hacer pan con jamon');
+	
+DELETE FROM designer
+
+DELETE FROM designer_skills
+
+SELECT * FROM designer
+
+SELECT * FROM designer_skills
+
+ALTER TABLE designer_skills ADD id SERIAL
+ALTER TABLE designer_skills ADD PRIMARY KEY (skill, id_designer)
+
+ALTER TABLE designer_skills DROP COLUMN id
+
+ALTER TABLE programmer_leng DROP CONSTRAINT programmer_leng_pkey
+
+ALTER TABLE programmer_leng ADD PRIMARY KEY (id_programmer, lenguage)
+
+ALTER TABLE programmer_leng ADD
+
+ALTER TABLE programmer_leng
+ADD CONSTRAINT id_programmer
+FOREIGN KEY (id_programmer) REFERENCES programmer (id);
+
+SELECT * FROM programmer ORDER BY id DESC
+
+SELECT * FROM programmer_leng
+
+DELETE FROM programmer_leng
+DELETE FROM programmer
+
+SELECT * FROM industries
+
+ALTER TABLE games ALTER COLUMN name TYPE VARCHAR(50)
+
+SELECT * FROM games
