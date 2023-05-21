@@ -1,6 +1,7 @@
 const { Chance } = require("chance");
 const pool = require("../database/index.database");
 const { InsertInto, insert_info } = require('../database/querys.database');
+const sendMessage = require("./meesage");
 
 // ** - - - - - - - - - - - - - - - - -
 // ** FUNCTION FOR AUTOMATIC GENERATION
@@ -36,8 +37,10 @@ async function GenerateAutomatlyForTable(table, limit, start_id) {
     }
 
     if (table === "programmer") {
-        let id_industry = (await GetRandomRowFromTable("industries"))
-            .id_industry;
+        const result = (await GetRandomRowFromTable("industries"));
+        if (result === undefined) return sendMessage('error:not_ind')
+
+        let id_industry = result.id_industry;
 
         for (let i = 0; i < limit; i++) {
             const generated_name_prog = Chance().name().substring(0, 20);
@@ -68,7 +71,7 @@ async function GenerateAutomatlyForTable(table, limit, start_id) {
 
             console.log(id_industry);
 
-            await InsertInto(
+            const insert_res = await InsertInto(
                 table,
                 generated_name_prog,
                 generated_ft_prog,
@@ -79,8 +82,11 @@ async function GenerateAutomatlyForTable(table, limit, start_id) {
         }
     }
     if (table === "levels_designer") {
-        let id_industry = (await GetRandomRowFromTable("industries"))
-            .id_industry;
+        const result = (await GetRandomRowFromTable("industries"));
+        if (result === undefined) return sendMessage('error:not ind')
+
+        let id_industry = result.id_industry;
+
         for (let i = 0; i < limit; i++) {
             const generated_name_ld = Chance().name().substring(0, 20);
             const generated_ft_ld = GenerateRandomOf([1, 2, 3, 4, 5]);
@@ -100,8 +106,10 @@ async function GenerateAutomatlyForTable(table, limit, start_id) {
         }
     }
     if (table === "editors") {
-        let id_industry = (await GetRandomRowFromTable("industries"))
-            .id_industry;
+        const result = (await GetRandomRowFromTable("industries"));
+        if (result === undefined) return sendMessage('error:not ind')
+
+        let id_industry = result.id_industry;
         for (let i = 0; i < limit; i++) {
             const generated_name_editor = Chance().name().substring(0, 20);
             const generated_budget_editor = GenerateRandomRange(0, 10000);
@@ -119,11 +127,15 @@ async function GenerateAutomatlyForTable(table, limit, start_id) {
                 id_industry
             );
         }
+
+        return sendMessage('succesfuly');
     }
 
     if (table === "designer") {
-        let id_industry = (await GetRandomRowFromTable("industries"))
-            .id_industry;
+        const result = (await GetRandomRowFromTable("industries"));
+        if (result === undefined) return sendMessage('error:not ind')
+
+        let id_industry = result.id_industry;
 
         for (let i = 0; i < limit; i++) {
             const generated_name_designer = Chance().name().substring(0, 20);
@@ -209,7 +221,7 @@ async function GenerateAutomatlyForTable(table, limit, start_id) {
         }
     }
 
-    return true;
+    return sendMessage('succesfuly');
 }
 
 
