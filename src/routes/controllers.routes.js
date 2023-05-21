@@ -11,6 +11,7 @@ const {
 } = require("../database/querys.database");
 const { GetLastIDQuery } = require("../database/functions.database");
 const sendMessage = require("../libs/meesage");
+const { types } = require("pg");
 
 // ** ---------------------- CREATE ROUTES -------------------------------
 //#region CREATE
@@ -58,9 +59,10 @@ const createProgrammer = async (req, res) => {
 
     try {
         if (mainConfig.devMode) {
-
-            const nextid = (await pool.query('SELECT nextval(\'developers_id_seq\')')).rows[0].nextval;
-            console.log(nextid)
+            const nextid = (
+                await pool.query("SELECT nextval('developers_id_seq')")
+            ).rows[0].nextval;
+            console.log(nextid);
 
             const result = (await pool.query(GetLastIDQuery("developers")))
                 .rows[0];
@@ -339,7 +341,6 @@ const getGames = async (req, res) => {
     return res.send(games);
 };
 
-
 const getUsers = async (req, res) => {
     const { id } = req.params;
 
@@ -362,6 +363,131 @@ const getReviews = async (req, res) => {
 
 //#endregion READ
 // ** ---------------------- READ ROUTES -------------------------------
+
+// ** ---------------------- UPDATE ROUTES -------------------------------
+//#region UPDATE
+const updateUser = async (req, res) => {
+    const { id } = req.params;
+    const { username, mail, pass } = req.body;
+
+    console.log(`----------- Updating User ${id} ------------`);
+
+    const query = {
+        text: "SELECT update_user($1, $2, $3, $4)",
+        values: [id, username, mail, pass],
+    };
+
+    const user = (await pool.query(`SELECT * FROM users WHERE id = ${id}`))
+        .rows[0];
+    const update_result = await pool.query(query);
+    return res.send(`Updated ${update_result.rowCount} rows`);
+};
+const updateIndustry = async (req, res) => {
+    const { id } = req.params;
+    const { name_industry, feature } = req.body;
+
+    console.log(`----------- Updating Industry ${id} ------------`);
+
+    const query = {
+        text: `SELECT update_industry($1, $2, $3)`,
+        values: [id, name_industry, feature],
+    };
+
+    const update_result = await pool.query(query);
+    return res.send(`Updated ${update_result.rowCount} rows`);
+};
+const updateGame = async (req, res) => {
+    const { id } = req.params;
+    const { name } = req.body;
+
+    console.log(`----------- Updating Game ${id} ------------`);
+
+    const query = {
+        text: `UPDATE games SET name = $2 WHERE id_game = $1`,
+        values: [id, name],
+    };
+
+    const update_result = await pool.query(query);
+    return res.send(`Updated ${update_result.rowCount} rows`);
+};
+const updateProgrammer = async (req, res) => {
+    const { id } = req.params;
+    const { name, feature, grade } = req.body;
+
+    console.log(`----------- Updating Programmer ${id} ------------`);
+
+    const query = {
+        text: `UPDATE developers SET name = $2, feature = $3 WHERE id = $1`,
+        values: [id, name, feature],
+    };
+
+    const update_result = await pool.query(
+        "UPDATE programmer SET grade = $1 WHERE id = $2",
+        [grade, id]
+    );
+    if (update_result.rowCount > 0) await pool.query(query);
+
+    return res.send(`Updated ${update_result.rowCount} rows`);
+};
+const updateLevelDesigner = async (req, res) => {
+    const { id } = req.params;
+    const { name, feature, speciality } = req.body;
+
+    console.log(`----------- Updating Level Designer ${id} ------------`);
+
+    const query = {
+        text: `UPDATE developers SET name = $2, feature = $3 WHERE id = $1`,
+        values: [id, name, feature],
+    };
+
+    const update_result = await pool.query(
+        "UPDATE levels_designer SET speciality = $1 WHERE id = $2",
+        [speciality, id]
+    );
+    if (update_result.rowCount > 0) await pool.query(query);
+
+    return res.send(`Updated ${update_result.rowCount} rows`);
+};
+const updateDesigner = async (req, res) => {
+    const { id } = req.params;
+    const { name, feature } = req.body;
+
+    console.log(`----------- Updating Designer ${id} ------------`);
+
+    const query = {
+        text: `UPDATE developers SET name = $2, feature = $3 WHERE id = $1`,
+        values: [id, name, feature],
+    };
+
+    const update_result = await pool.query(
+        "SELECT id FROM designer WHERE id = $1",
+        [id]
+    );
+    if (update_result.rowCount > 0) await pool.query(query);
+
+    return res.send(`Updated ${update_result.rowCount} rows`);
+};
+const updateEditor = async (req, res) => {
+    const { id } = req.params;
+    const { name, feature, budget, website } = req.body;
+
+    console.log(`----------- Updating Editor ${id} ------------`);
+
+    const query = {
+        text: `UPDATE developers SET name = $2, feature = $3 WHERE id = $1`,
+        values: [id, name, feature],
+    };
+
+    const update_result = await pool.query(
+        "UPDATE editors SET budget = $1, website = $2 WHERE id = $3",
+        [budget, website, id]
+    );
+    if (update_result.rowCount > 0) await pool.query(query);
+
+    return res.send(`Updated ${update_result.rowCount} rows`);
+};
+//#endregion UPDATE
+// ** ---------------------- UPDATE ROUTES -------------------------------
 
 module.exports = {
     createIndustry,
@@ -388,5 +514,13 @@ module.exports = {
     getGames,
     getLevelDesigners,
     getUsers,
-    getReviews
+    getReviews,
+
+    updateUser,
+    updateIndustry,
+    updateGame,
+    updateDesigner,
+    updateProgrammer,
+    updateEditor,
+    updateLevelDesigner,
 };

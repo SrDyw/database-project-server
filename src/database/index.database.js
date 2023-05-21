@@ -4,7 +4,7 @@ const config = require('./config.database');
 const pool = new pg.Pool(config)
 
 pool.connect()
-.then(() => console.log('Conexión a la base de datos establecida'))
-.catch(err => console.error('Error al conectar a la base de datos\n', err.stack));
+.then(() => console.log('Database connection established'))
+.catch(err => console.error('Error connecting to database\n', err.stack));
 
 module.exports = pool;

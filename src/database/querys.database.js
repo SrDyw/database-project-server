@@ -389,6 +389,7 @@ async function SelectFrom(table, id) {
             }
 
             result_info.push({
+                id: developer.id,
                 name: developer.name,
                 feature: developer.feature,
                 grade: developer.grade,
@@ -442,6 +443,7 @@ async function SelectFrom(table, id) {
             }
 
             result_info.push({
+                id: developer.id,
                 name: developer.name,
                 feature: developer.feature,
                 skills: skills,
@@ -600,6 +602,15 @@ async function SelectFrom(table, id) {
     }
     return sendMessage("no info", "info");
 }
+
+// ** - - - - - - - - - - - - - - -
+// ** MAINS QUERYS FOR UPDATE
+// ** - - - - - - - - - - - - - - -
+async function UpdateFrom(table) {
+
+}
+
+
 module.exports = {
     InsertInto,
     UpdateSkillTable,

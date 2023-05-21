@@ -23,6 +23,13 @@ const {
     getLevelDesigners,
     getUsers,
     getReviews,
+    updateUser,
+    updateIndustry,
+    updateGame,
+    updateProgrammer,
+    updateDesigner,
+    updateLevelDesigner,
+    updateEditor,
 } = require("./controllers.routes");
 
 const router = Router();
@@ -49,9 +56,13 @@ router.post("/cgame", createGame);
 //#endregion CREATE
 
 //#region UPDATE
-router.post("/uuser/:id", (req, res) => {
-    res.send("Updating users");
-});
+router.post("/uuser/:id", updateUser);
+router.post("/uindustry/:id", updateIndustry);
+router.post("/ugame/:id", updateGame);
+router.post("/uprogrammer/:id", updateProgrammer);
+router.post("/udesigner/:id", updateDesigner);
+router.post("/uleveldesigner/:id", updateLevelDesigner);
+router.post("/ueditor/:id", updateEditor);
 //#endregion UPDATE
 
 //#region READ
