@@ -31,33 +31,38 @@ async function InsertInto(table, ...values) {
     //** PROGRAMMER INSERT */
     //** - - - - - - - - - - - - - - -
     if (table === "programmer") {
-        query = 'INSERT INTO "programmer"(id, grade) VALUES($1, $2)';
+        try {
+            query = 'INSERT INTO "programmer"(id, grade) VALUES($1, $2)';
 
-        const programmer_grade = values[2];
-        const values_programmer_leng = values[3];
-        const id_industry = values[4];
+            const programmer_grade = values[2];
+            const values_programmer_leng = values[3];
+            const id_industry = values[4];
 
-        console.log(values.slice(0, 2));
+            console.log("Inserting at", insert_info.id_insert);
+            
+            await pool.query(query_developer, developer_query_values);
 
-        await pool.query(query_developer, developer_query_values);
-        await pool.query(query, [++insert_info.id_insert, programmer_grade]);
+            await pool.query(query, [insert_info.id_insert++, programmer_grade]);
 
-        await pool.query(
-            'INSERT INTO "developers_industries"(id_developer, id_industry) VALUES($1, $2)',
-            [insert_info.id_insert, id_industry]
-        );
+            await pool.query(
+                'INSERT INTO "developers_industries"(id_developer, id_industry) VALUES($1, $2)',
+                [insert_info.id_insert, id_industry]
+            );
 
-        pendientLenguages.push({
-            id_programmer: insert_info.id_insert,
-            values_programmer: values_programmer_leng,
-        });
+            pendientLenguages.push({
+                id_programmer: insert_info.id_insert - 1,
+                values_programmer: values_programmer_leng,
+            });
 
-        customQuery = true;
+            customQuery = true;
 
-        console.log(
-            `Create ${table} id -> ${insert_info.id_insert} with values (${developer_query_values}, ${programmer_grade}, lenaguages => ${values_programmer_leng})`
-        );
-
+            console.log(
+                `Create ${table} id -> ${insert_info.id_insert} with values (${developer_query_values}, ${programmer_grade}, lenaguages => ${values_programmer_leng})`
+            );
+        } catch (e) {
+            throw new Error(e);
+            return sendMessage("error at insert", "error");
+        }
         customQuery = true;
     }
 
@@ -67,8 +72,11 @@ async function InsertInto(table, ...values) {
     if (table === "levels_designer") {
         query = 'INSERT INTO "levels_designer"(id, speciality) VALUES($1, $2)';
 
-        const ld_query_values = [++insert_info.id_insert, values[2]];
+        // const id_dev = (await pool.query("SELECT nextval('developers_id_seq')")).rows[0].nextval;
 
+        const ld_query_values = [insert_info.id_insert++, values[2]];
+        // console.log("Insertando " + ld_query_values);
+        // customQuery = true;
         await pool.query(query_developer, developer_query_values);
         await pool.query(query, ld_query_values);
 
@@ -91,7 +99,7 @@ async function InsertInto(table, ...values) {
         query = 'INSERT INTO "editors"(id, budget, website) VALUES($1, $2, $3)';
 
         const editor_query_values = [
-            ++insert_info.id_insert,
+            insert_info.id_insert++,
             values[2],
             values[3],
         ];
@@ -102,7 +110,7 @@ async function InsertInto(table, ...values) {
         const id_industry = values[4];
         await pool.query(
             'INSERT INTO "developers_industries"(id_developer, id_industry) VALUES($1, $2)',
-            [insert_info.id_insert + 1, id_industry]
+            [insert_info.id_insert - 1, id_industry]
         );
 
         customQuery = true;
@@ -117,7 +125,7 @@ async function InsertInto(table, ...values) {
     if (table === "designer") {
         query = 'INSERT INTO "designer"(id) VALUES($1)';
 
-        const values_desinger_query = [++insert_info.id_insert];
+        const values_desinger_query = [insert_info.id_insert++];
 
         await pool.query(query_developer, developer_query_values);
         await pool.query(query, values_desinger_query);
@@ -132,7 +140,7 @@ async function InsertInto(table, ...values) {
         console.log(insert_info.id_insert);
 
         pendientSkills.push({
-            id_designer: insert_info.id_insert,
+            id_designer: insert_info.id_insert - 1,
             values_designer: values[2],
         });
 
@@ -217,18 +225,25 @@ async function DelelteFrom(table, id) {
     //** PROGRAMMER DELETE */
     //** - - - - - - - - - - - - - - -
     if (table === "programmer") {
+        const id_arr = (await pool.query('SELECT id FROM programmer ' + condition_dev)).rows;
+
         const result_on_lenguages = await pool.query(
             `DELETE FROM "programmer_leng" ` + condition_leng
         );
         const result_on_programmer = await pool.query(
             `DELETE FROM ${table} ` + condition_dev
         );
-        const result_on_developers = await pool.query(
-            `DELETE FROM "developers" ` + condition_dev
-        );
+        let delete_rows_in_developer = 0;
+        for(id in id_arr) {
+            const result_on_developers = await pool.query(
+                `DELETE FROM developers WHERE id= ` + id_arr[id].id
+            );
+            delete_rows_in_developer++;
 
-        console.log(`Delete rows in developer -> ${result_on_developers.rowCount}\n
-        Delete rows in ${table} -> ${result_on_programmer.rowCount}\n Delete rows in leng ${result_on_lenguages}`);
+        }
+
+        console.log(`Delete rows in developer -> ${delete_rows_in_developer}\n
+        Delete rows in ${table} -> ${result_on_programmer.rowCount}\n Delete rows in leng ${result_on_lenguages.rows}`);
     }
 
     //** - - - - - - - - - - - - - - -
@@ -237,33 +252,48 @@ async function DelelteFrom(table, id) {
     if (table === "designer") {
         condition_leng = id === "all" ? `` : `WHERE id_designer = ${id}`;
 
+        let delete_rows_in_developer = 0;
+        const id_arr = (await pool.query('SELECT id FROM designer ' + condition_dev)).rows;
+
         const result_on_skills = await pool.query(
             `DELETE FROM "designer_skills" ` + condition_leng
         );
         const result_on_designer = await pool.query(
             `DELETE FROM ${table} ` + condition_dev
         );
-        const result_on_developers = await pool.query(
-            `DELETE FROM "developers" ` + condition_dev
-        );
+
+
+        for(id in id_arr) {
+            const result_on_developers = await pool.query(
+                `DELETE FROM developers WHERE id= ` + id_arr[id].id
+            );
+            delete_rows_in_developer++;
+        }
 
         console.log(
-            `Delete rows in developer -> ${result_on_developers.rowCount}\nDelete rows in ${table} -> ${result_on_designer.rowCount}\nDelete rows in skills ${result_on_skills}`
+            `Delete rows in developer -> ${delete_rows_in_developer}\nDelete rows in ${table} -> ${result_on_designer.rowCount}\nDelete rows in skills ${result_on_skills.rowCount}`
         );
     }
     //** - - - - - - - - - - - - - - -
     //** LEVEL DESIGNER DELETE */
     //** - - - - - - - - - - - - - - -
     if (table === "levels_designer") {
+        const id_arr = (await pool.query('SELECT id FROM levels_designer ' + condition_dev)).rows;
+
         const result_on_level_designer = await pool.query(
             `DELETE FROM ${table} ` + condition_dev
         );
-        const result_on_developers = await pool.query(
-            `DELETE FROM "developers" ` + condition_dev
-        );
+
+        let delete_rows_in_developer = 0;
+        for(id in id_arr) {
+            const result_on_developers = await pool.query(
+                `DELETE FROM developers WHERE id= ` + id_arr[id].id
+            );
+            delete_rows_in_developer++;
+        }
 
         console.log(
-            `Delete rows in developer -> ${result_on_developers.rowCount}\nDelete rows in ${table} -> ${result_on_level_designer.rowCount}`
+            `Delete rows in developer -> ${delete_rows_in_developer}\nDelete rows in ${table} -> ${result_on_level_designer.rowCount}`
         );
     }
 
@@ -271,6 +301,8 @@ async function DelelteFrom(table, id) {
     //** EDITOR DELETE */
     //** - - - - - - - - - - - - - - -
     if (table === "editors") {
+        const id_arr = (await pool.query('SELECT id FROM levels_designer ' + condition_dev)).rows;
+
         condition_leng = id === "all" ? `` : `WHERE id_editor = ${id}`;
 
         const result_on_editorgame = await pool.query(
@@ -279,12 +311,16 @@ async function DelelteFrom(table, id) {
         const result_on_editor = await pool.query(
             `DELETE FROM ${table} ` + condition_dev
         );
-        const result_on_developers = await pool.query(
-            `DELETE FROM "developers" ` + condition_dev
-        );
+        let delete_rows_in_developer = 0;
+        for(id in id_arr) {
+            const result_on_developers = await pool.query(
+                `DELETE FROM developers WHERE id= ` + id_arr[id].id
+            );
+            delete_rows_in_developer++;
+        }
 
         console.log(
-            `Delete rows in developer -> ${result_on_developers.rowCount}\nDelete rows in ${table} -> ${result_on_editor.rowCount}\nDelete rows in editor-game -> ${result_on_editorgame.rowCount}`
+            `Delete rows in developer -> ${delete_rows_in_developer}\nDelete rows in ${table} -> ${result_on_editor.rowCount}\nDelete rows in editor-game -> ${result_on_editorgame.rowCount}`
         );
     }
 
@@ -332,6 +368,9 @@ async function DelelteFrom(table, id) {
         condition_leng = id === "all" ? `` : `WHERE id_industry = ${id}`;
         condition_dev = id === "all" ? `` : `WHERE id_industry = ${id}`;
 
+        const game_result = await pool.query('DELETE FROM games WHERE id_industry = $1', [id])
+        console.log(`Games deleted -> ${game_result.rowCount}`);
+
         const result_on_ind_dev = await pool.query(
             `DELETE FROM "developers_industries" ` + condition_leng
         );
@@ -341,6 +380,18 @@ async function DelelteFrom(table, id) {
 
         console.log(
             `Delete rows in ${table} -> ${result_on_industries.rowCount}\nDelete rows in develovers-industries -> ${result_on_ind_dev.rowCount}`
+        );
+    }
+
+    if (table === "review") {
+        condition_leng = id === "all" ? `` : `WHERE id_user = ${id}`;
+
+        const result_on_review = await pool.query(
+            `DELETE FROM "reviews" ` + condition_leng
+        );
+
+        console.log(
+            `Delete rows in ${table} -> ${result_on_review.rowCount}`
         );
     }
 }
@@ -576,12 +627,7 @@ async function SelectFrom(table, id) {
             condition = `WHERE id = ${id}`;
         }
 
-        all_users = (
-            await pool.query(
-                "SELECT * FROM users " +
-                    condition
-            )
-        ).rows;
+        all_users = (await pool.query("SELECT * FROM users " + condition)).rows;
         return all_users;
     }
     if (table === "reviews") {
@@ -592,12 +638,8 @@ async function SelectFrom(table, id) {
             condition = `WHERE id_user = ${id}`;
         }
 
-        all_reviews = (
-            await pool.query(
-                "SELECT * FROM reviews " +
-                    condition
-            )
-        ).rows;
+        all_reviews = (await pool.query("SELECT * FROM reviews " + condition))
+            .rows;
         return all_reviews;
     }
     return sendMessage("no info", "info");
@@ -606,10 +648,7 @@ async function SelectFrom(table, id) {
 // ** - - - - - - - - - - - - - - -
 // ** MAINS QUERYS FOR UPDATE
 // ** - - - - - - - - - - - - - - -
-async function UpdateFrom(table) {
-
-}
-
+async function UpdateFrom(table) {}
 
 module.exports = {
     InsertInto,

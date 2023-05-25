@@ -48,3 +48,78 @@ SELECT * FROM industries
 ALTER TABLE games ALTER COLUMN name TYPE VARCHAR(50)
 
 SELECT * FROM games
+
+CREATE OR REPLACE FUNCTION update_industry(_id INTEGER, _name_industry TEXT, _feature INTEGER)
+RETURNS VOID AS $$
+BEGIN
+	UPDATE industries SET name_industry = 
+	CASE WHEN _name_industry IS NOT NULL THEN _name_industry ELSE name_industry END, 
+	feature = CASE WHEN _feature IS NOT NULL THEN _feature ELSE feature END
+	WHERE id_industry = _id;
+END;
+$$ LANGUAGE plpgsql
+
+-- INSERT PROGRAMMER FUNCTION
+CREATE OR REPLACE FUNCTION insert_programmer(_name TEXT, _feature INTEGER, _grade TEXT, _lenguages TEXT[])
+RETURNS INTEGER AS $$
+DECLARE id_insert INTEGER;
+DECLARE len TEXT;											 
+BEGIN
+	INSERT INTO developers (name, feature) VALUES( _name, _feature);
+	SELECT currval('developers_id_seq') INTO id_insert;
+	
+	INSERT INTO programmer (id, grade) VALUES(id_insert, _grade);
+
+	FOREACH len IN ARRAY _lenguages LOOP
+		INSERT INTO programmer_leng (id_programmer, lenguage) VALUES(id_insert, len);										 
+	END LOOP;									 
+											 
+	RETURN id_insert;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT * FROM developers ORDER BY id DESC
+SELECT * FROM programmer_leng ORDER BY id_programmer DESC
+
+-- CREATE DESIGNER
+CREATE OR REPLACE FUNCTION insert_designer(_name TEXT, _feature INTEGER, _skills TEXT[])
+RETURNS INTEGER AS $$
+DECLARE id_insert INTEGER;
+DECLARE sk TEXT;											 
+BEGIN
+	INSERT INTO developers (name, feature) VALUES( _name, _feature);
+	SELECT currval('developers_id_seq') INTO id_insert;
+	
+	INSERT INTO designer (id) VALUES(id_insert);
+
+	FOREACH sk IN ARRAY _skills LOOP
+		INSERT INTO designer_skills (id_designer, skill) VALUES(id_insert, sk);										 
+	END LOOP;									 
+											 
+	RETURN id_insert;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT * FROM developers ORDER BY id DESC;
+SELECT * FROM designer ORDER BY id DESC;
+
+SELECT * FROM designer_skills ORDER BY id_designer DESC;
+
+-- CREATE EDITOR
+CREATE OR REPLACE FUNCTION insert_editor(_name TEXT, _feature INTEGER, _budget INTEGER, _website TEXT)
+RETURNS INTEGER AS $$
+DECLARE id_insert INTEGER;
+DECLARE sk TEXT;											 
+BEGIN
+	INSERT INTO developers (name, feature) VALUES( _name, _feature);
+	SELECT currval('developers_id_seq') INTO id_insert;
+	
+	INSERT INTO editors (id, budget, website) VALUES(id_insert, _budget, _website);
+											 
+	RETURN id_insert;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT * FROM developers ORDER BY id DESC;
+SELECT * FROM editors ORDER BY id DESC;
+

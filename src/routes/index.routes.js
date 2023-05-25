@@ -30,7 +30,15 @@ const {
     updateDesigner,
     updateLevelDesigner,
     updateEditor,
+    deleteReview,
+    changeMode,
+    getServerMode,
+    getTopGames,
+    getBestDev,
+    getWorstReviews,
+    getHighersIndustries,
 } = require("./controllers.routes");
+const pool = require("../database/index.database");
 
 const router = Router();
 
@@ -59,7 +67,7 @@ router.post("/cgame", createGame);
 router.post("/uuser/:id", updateUser);
 router.post("/uindustry/:id", updateIndustry);
 router.post("/ugame/:id", updateGame);
-router.post("/uprogrammer/:id", updateProgrammer);
+router.put("/uprogrammer/:id", updateProgrammer);
 router.post("/udesigner/:id", updateDesigner);
 router.post("/uleveldesigner/:id", updateLevelDesigner);
 router.post("/ueditor/:id", updateEditor);
@@ -75,6 +83,10 @@ router.get("/industries/:id", getIndustry);
 router.get("/games/:id", getGames);
 router.get("/users/:id", getUsers);
 router.get("/reviews/:id", getReviews);
+
+router.get("/pool", (req, res)=> {
+    return res.status(204).send(pool);
+});
 //#endregion READ
 
 //#region DELETE
@@ -86,9 +98,21 @@ router.post("/deditor/:id", deleteEditor);
 router.post("/duser/:id", deleteUser);
 router.post("/dgame/:id", deleteGame);
 router.post("/dindustry/:id", deleteIndustry);
+router.post("/dreview/:id", deleteReview);
 
 //#endregion DELETE
 
+
+
+router.post("/changemode", changeMode);
+router.get("/changemode", getServerMode);
+
+router.get("/higersind", getHighersIndustries);
+router.get("/topgames", getTopGames);
+router.get("/bestdev", getBestDev);
+router.get("/criticsreview", getWorstReviews);
+
+router.get("/changemode", getServerMode);
 
 
 router.get("/api", (req, res) => {
